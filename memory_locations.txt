@@ -1,0 +1,73 @@
+Key memory locations:
+These will be actual useful pieces of information that will need extraction while the game is actively running. These are initial first-look items I'd like to start with, but more can be found here: https://datacrystal.romhacking.net/wiki/Pok%C3%A9mon_Red/Blue/RAM_map
+
+Pokemon
+AF2C - B0BF : Party data
+
+Pokémon boxes 1-12
+A000 - A461 : Box 1
+A462 - A8C3 : Box 2
+A8C4 - AD25 : Box 3
+AD26 - B187 : Box 4
+B188 - B5E9 : Box 5
+B5EA - BA4B : Box 6
+A000 - A461 : Box 7
+A462 - A8C3 : Box 8
+A8C4 - AD25 : Box 9
+AD26 - B187 : Box 10
+B188 - B5E9 : Box 11
+B5EA - BA4B : Box 12
+
+Sprites
+C100 to C1FF : Data for all sprites on the current map
+               Holds info for 16 sprites with $10 bytes each
+               Note : player is always sprite 0
+Replace x with the sprite ID
+    C1x0: picture ID (fixed, loaded at map init)
+    C1x1: movement status (0: uninitialized, 1: ready, 2: delayed, 3: moving)
+    C1x2: sprite image index (changed on update, $ff if off screen, includes facing direction, progress in walking animation and a sprite-specific offset)
+    C1x3: Y screen position delta (-1,0 or 1; added to c1x4 on each walking animation update)
+    C1x4: Y screen position (in pixels, always 4 pixels above grid which makes sprites appear to be in the center of a tile)
+    C1x5: X screen position delta (-1,0 or 1; added to c1x6 on each walking animation update)
+    C1x6: X screen position (in pixels, snaps to grid if not currently walking)
+    C1x7: intra-animation-frame counter (counting upwards to 4 until c1x8 is incremented)
+    C1x8: animation frame counter (increased every 4 updates, hold four states (totalling to 16 walking frames)
+    C1x9: facing direction (0: down, 4: up, 8: left, $c: right)
+    C1xA to C1xF are unudocumented (if used)
+C200 to C2FF : More data for all sprites on the current map
+               Holds info for 16 sprites with $10 bytes each
+               Note : player sprite is always sprite 0
+
+    C2x0: walk animation counter (counting from $10 backwards when moving)
+    C2x1:
+    C2x2: Y displacement (initialized at 8, supposed to keep moving sprites from moving too far, but bugged)
+    C2x3: X displacement (initialized at 8, supposed to keep moving sprites from moving too far, but bugged)
+    C2x4: Y position (in 2x2 tile grid steps, topmost 2x2 tile has value 4)
+    C2x5: X position (in 2x2 tile grid steps, leftmost 2x2 tile has value 4)
+    C2x6: movement byte 1 (determines whether a sprite can move, $ff:not moving, $fe:random movements, others unknown)
+    C2x7: (?) (set to $80 when in grass, else $0; may be used to draw grass above the sprite)
+    C2x8: delay until next movement (counted downwards, status (c1x1) is set to ready if reached 0)
+    C2x9 to C2xD are undocumented
+    C2xE: sprite image base offset (in video ram, player always has value 1, used to compute c1x2)
+    C2xF isn't documented
+
+Tile Data
+C3A0 to C507 : Buffer of all tiles onscreen
+C508 to C5CF : Copy of previous buffer (used to restore tiles after closing menus)
+
+Menu Data
+Coordinates of the position of the cursor for the top menu item (id 0)
+CC24 : Y position
+CC25 : X position
+ CC26 - Currently selected menu item (topmost is 0)
+CC27 - Tile "hidden" by the menu cursor
+CC28 - ID of the last menu item
+CC29 - bitmask applied to the key port for the current menu
+CC2A - ID of the previously selected menu item
+CC2B - Last position of the cursor on the party / Bill's PC screen
+CC2C - Last position of the cursor on the item screen
+CC2D - Last position of the cursor on the START / battle menu
+CC2F - Index (in party) of the Pokémon currently sent out
+CC30~CC31 - Pointer to cursor tile in C3A0 buffer
+CC36 - ID of the first displayed menu item
+CC35 - Item highlighted with Select (01 = first item, 00 = no item, etc.)
